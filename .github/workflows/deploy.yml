@@ -18,16 +18,18 @@ concurrency:
 
 jobs:
   build-and-deploy:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps
@@ -40,15 +42,29 @@ jobs:
           npm run build
           cp dist/index.html dist/404.html
           touch dist/.nojekyll
+          mkdir -p public/gh-pages-bundle
+          cp dist/assets/index-*.js public/gh-pages-bundle/app.js
+          cp dist/assets/index-*.css public/gh-pages-bundle/app.css
 
-      - name: Publish to gh-pages branch (works with 'Deploy from a branch -> gh-pages')
+      - name: Commit compiled bundle for main-branch GitHub Pages
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          touch .nojekyll
+          git add public/gh-pages-bundle/app.js public/gh-pages-bundle/app.css .nojekyll
+          git diff --staged --quiet || git commit -m "chore: update precompiled GitHub Pages bundle [skip ci]"
+          git push origin HEAD:${GITHUB_REF_NAME}
+
+      - name: Publish to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
+        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           force_orphan: true
 
-      - name: Setup GitHub Pages (works with 'Source -> GitHub Actions')
+      - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
         continue-on-error: true
 
