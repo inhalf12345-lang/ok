@@ -205,34 +205,6 @@ export const DEFAULT_TEST_GROUP_MEMBERS = [
 ];
 
 export function getLocalStoredConversations(userId: string): any[] {
-  const defaultTestGroup = {
-    id: 'group_spark_test_squad',
-    is_group: true,
-    name: 'Spark Test Squad',
-    avatar_url: 'https://api.dicebear.com/7.x/identicon/svg?seed=SparkTestSquad&backgroundColor=ffe4e6',
-    member_count: 4,
-    members: DEFAULT_TEST_GROUP_MEMBERS,
-    created_by: userId || 'system',
-    created_at: '2026-11-01T08:00:00.000Z',
-    updated_at: '2026-11-01T08:00:00.000Z',
-    other_user: {
-      id: 'group_spark_test_squad',
-      username: 'spark_test_squad',
-      display_name: 'Spark Test Squad',
-      avatar_url: 'https://api.dicebear.com/7.x/identicon/svg?seed=SparkTestSquad&backgroundColor=ffe4e6',
-      is_online: true,
-      streak_days: 1,
-      equipped_frame: 'frame_pulsar',
-    },
-    last_message: {
-      id: 'msg_welcome_group',
-      content: 'Tap here to test sending pictures & today To-Do list in the group! 📷',
-      sender_id: 'test_user_neha',
-      created_at: '2026-11-01T08:00:00.000Z',
-    },
-    has_unread: false,
-  };
-
   const mergedMap = new Map<string, any>();
 
   try {
@@ -241,7 +213,9 @@ export function getLocalStoredConversations(userId: string): any[] {
       const parsed = JSON.parse(rawUser);
       if (Array.isArray(parsed)) {
         parsed.forEach((c: any) => {
-          if (c && c.id) mergedMap.set(c.id, c);
+          if (c && c.id && c.id !== 'group_spark_test_squad') {
+            mergedMap.set(c.id, c);
+          }
         });
       }
     }
@@ -250,17 +224,13 @@ export function getLocalStoredConversations(userId: string): any[] {
       const parsedGlobal = JSON.parse(rawGlobal);
       if (Array.isArray(parsedGlobal)) {
         parsedGlobal.forEach((c: any) => {
-          if (c && c.id && !mergedMap.has(c.id)) {
+          if (c && c.id && c.id !== 'group_spark_test_squad' && !mergedMap.has(c.id)) {
             mergedMap.set(c.id, c);
           }
         });
       }
     }
   } catch {}
-
-  if (!mergedMap.has(defaultTestGroup.id)) {
-    mergedMap.set(defaultTestGroup.id, defaultTestGroup);
-  }
 
   // Hydrate latest cached message into each conversation so chat previews always stay updated
   const result = Array.from(mergedMap.values()).map((conv) => {
