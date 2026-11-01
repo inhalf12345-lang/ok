@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --accent-pink: #ff3b69;
+    --accent-coral: #fb7185;
+    --accent-blue: #38bdf8;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #0f172a;
+    background: linear-gradient(135deg, #70d6ff 0%, #a8d5ff 25%, #e8d7ff 50%, #ff9ebb 75%, #ff5c8d 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Outfit', system-ui, sans-serif;
+  }
+
+  .font-mono-numbers {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* =========================================================
+   LIGHT PASTEL MESSENGER MOTION & SURFACES
+   ========================================================= */
+
+/* Soft Screen Flow */
+@keyframes liquidExpand {
+  0% {
+    clip-path: circle(0% at var(--origin-x, 50%) var(--origin-y, 50%));
+    opacity: 0.9;
+  }
+  100% {
+    clip-path: circle(160% at var(--origin-x, 50%) var(--origin-y, 50%));
+    opacity: 1;
+  }
+}
+
+@keyframes liquidCollapse {
+  0% {
+    clip-path: circle(160% at var(--origin-x, 50%) var(--origin-y, 50%));
+    opacity: 1;
+  }
+  100% {
+    clip-path: circle(0% at var(--origin-x, 50%) var(--origin-y, 50%));
+    opacity: 0.8;
+  }
+}
+
+.liquid-enter {
+  animation: liquidExpand 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.liquid-exit {
+  animation: liquidCollapse 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Morphing Send Button & Floating Button */
+@keyframes dropletSquish {
+  0% { transform: scale(1); border-radius: 9999px; }
+  35% { transform: scale(1.18, 0.82); border-radius: 40% 60% 60% 40% / 50% 50% 50% 50%; }
+  65% { transform: scale(0.92, 1.15); border-radius: 50% 50% 40% 60% / 40% 60% 50% 50%; }
+  100% { transform: scale(1); border-radius: 9999px; }
+}
+
+.animate-droplet-squish {
+  animation: dropletSquish 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Message Glides */
+@keyframes fluidGlideIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(16px, 8px, 0) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.animate-fluid-glide {
+  animation: fluidGlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fluidRippleIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(-16px, 8px, 0) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.animate-fluid-ripple {
+  animation: fluidRippleIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Droplet Coin Float Reward */
+@keyframes coinDropletFloat {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.7);
+  }
+  20% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1.1);
+  }
+  80% {
+    opacity: 0.9;
+    transform: translate3d(-2px, -32px, 0) scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -45px, 0) scale(0.85);
+  }
+}
+
+.animate-coin-droplet {
+  animation: coinDropletFloat 1.2s cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+  pointer-events: none;
+}
+
+/* Custom delicate light scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(203, 213, 225, 0.6);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(244, 63, 94, 0.5);
+}

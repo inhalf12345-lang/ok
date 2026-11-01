@@ -1,0 +1,6 @@
+{
+  "name": "Spark - Social Reward Chat",
+  "description": "A gamified social chat app with glowing orbital home hub, spark burst messages, and virtual coin rewards powered by Supabase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
