@@ -1,20 +1,39 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import {
   getAuth,
   signInWithPopup,
   GoogleAuthProvider,
   onAuthStateChanged,
   User,
+  Auth,
 } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 export const SCOPES = ['https://www.googleapis.com/auth/meetings.space.created'];
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
+let cachedAuthInstance: Auth | null = null;
+let cachedProviderInstance: GoogleAuthProvider | null = null;
 
-const provider = new GoogleAuthProvider();
-SCOPES.forEach((scope) => provider.addScope(scope));
+function getSafeFirebaseAuth(): { auth: Auth | null; provider: GoogleAuthProvider | null } {
+  try {
+    if (!cachedAuthInstance) {
+      if (!firebaseConfig || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
+        return { auth: null, provider: null };
+      }
+      const app: FirebaseApp =
+        getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+      cachedAuthInstance = getAuth(app);
+    }
+    if (!cachedProviderInstance) {
+      cachedProviderInstance = new GoogleAuthProvider();
+      SCOPES.forEach((scope) => cachedProviderInstance!.addScope(scope));
+    }
+    return { auth: cachedAuthInstance, provider: cachedProviderInstance };
+  } catch (err) {
+    console.warn('Firebase Auth lazy init notice:', err);
+    return { auth: null, provider: null };
+  }
+}
 
 // Flag to indicate if we are in the middle of a sign-in flow.
 let isSigningIn = false;
@@ -33,20 +52,31 @@ export interface GoogleMeetSpace {
 export const initMeetGoogleAuth = (
   onAuthSuccess?: (user: User, token: string) => void,
   onAuthFailure?: () => void
-) => {
-  return onAuthStateChanged(auth, async (user: User | null) => {
-    if (user) {
-      if (cachedAccessToken) {
-        if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
-      } else if (!isSigningIn) {
+): (() => void) => {
+  const { auth } = getSafeFirebaseAuth();
+  if (!auth) {
+    if (onAuthFailure) onAuthFailure();
+    return () => {};
+  }
+
+  try {
+    return onAuthStateChanged(auth, async (user: User | null) => {
+      if (user) {
+        if (cachedAccessToken) {
+          if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
+        } else if (!isSigningIn) {
+          cachedAccessToken = null;
+          if (onAuthFailure) onAuthFailure();
+        }
+      } else {
         cachedAccessToken = null;
         if (onAuthFailure) onAuthFailure();
       }
-    } else {
-      cachedAccessToken = null;
-      if (onAuthFailure) onAuthFailure();
-    }
-  });
+    });
+  } catch {
+    if (onAuthFailure) onAuthFailure();
+    return () => {};
+  }
 };
 
 /**
@@ -56,6 +86,11 @@ export const signInWithGoogleForMeet = async (): Promise<{
   user: User;
   accessToken: string;
 } | null> => {
+  const { auth, provider } = getSafeFirebaseAuth();
+  if (!auth || !provider) {
+    throw new Error('Google Sign-In is not configured for this domain.');
+  }
+
   try {
     isSigningIn = true;
     const result = await signInWithPopup(auth, provider);
@@ -79,11 +114,15 @@ export const getMeetAccessToken = async (): Promise<string | null> => {
 };
 
 export const getCurrentMeetGoogleUser = (): User | null => {
-  return auth.currentUser;
+  const { auth } = getSafeFirebaseAuth();
+  return auth?.currentUser || null;
 };
 
 export const signOutGoogleMeet = async (): Promise<void> => {
-  await auth.signOut();
+  const { auth } = getSafeFirebaseAuth();
+  if (auth) {
+    await auth.signOut();
+  }
   cachedAccessToken = null;
 };
 
@@ -120,7 +159,8 @@ export async function createGoogleMeetSpace(): Promise<GoogleMeetSpace> {
   const data = await res.json();
   return {
     name: data.name || '',
-    meetingUri: data.meetingUri || (data.meetingCode ? `https://meet.google.com/${data.meetingCode}` : ''),
+    meetingUri:
+      data.meetingUri || (data.meetingCode ? `https://meet.google.com/${data.meetingCode}` : ''),
     meetingCode: data.meetingCode || '',
   };
 }

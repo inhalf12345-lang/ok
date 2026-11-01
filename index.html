@@ -15,7 +15,27 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="./src/main.tsx"></script>
+    <script>
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          var root = document.getElementById('root');
+          if (root && root.innerHTML.trim() === '' && window.location.hostname.indexOf('github.io') !== -1) {
+            root.innerHTML =
+              '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;background:#fff1f5;padding:24px;">' +
+              '<div style="max-width:480px;background:#fff;border-radius:24px;padding:28px;box-shadow:0 12px 32px rgba(255,59,105,0.12);border:1px solid #ffe4e6;">' +
+              '<h2 style="margin:0 0 12px;color:#0f172a;font-size:20px;">Almost Live on GitHub Pages! ⚡</h2>' +
+              '<p style="color:#475569;font-size:14px;line-height:1.6;margin:0 0 16px;">GitHub Pages is currently serving the raw source branch instead of the compiled Vite build. Fix this in 1 click:</p>' +
+              '<ol style="color:#334155;font-size:13px;line-height:1.8;padding-left:20px;margin:0 0 16px;">' +
+              '<li>Open your repository on <strong>GitHub → Settings → Pages</strong></li>' +
+              '<li>Under <strong>Build and deployment → Source</strong>, change from <em>Deploy from a branch</em> to <strong>GitHub Actions</strong> (or select the <strong>gh-pages</strong> branch).</li>' +
+              '<li>Wait ~30 seconds and refresh this page!</li>' +
+              '</ol>' +
+              '</div></div>';
+          }
+        }, 2500);
+      });
+    </script>
   </body>
 </html>
 
